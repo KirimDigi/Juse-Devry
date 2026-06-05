@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
@@ -3241,6 +3241,21 @@
                           >
                             Kepada Yth.<br />Bapak/Ibu/Saudara/i
                           </h2>
+                          <div id="guest-name-container" style="margin-top: 15px; margin-bottom: 5px; display: none;">
+                            <h3
+                              id="guest-name-placeholder"
+                              style="
+                                font-family: inherit;
+                                font-size: 26px;
+                                font-weight: 700;
+                                color: #685952;
+                                margin: 0;
+                                text-shadow: 1px 1px 1px rgba(0,0,0,0.05);
+                              "
+                            >
+                              Nama Tamu
+                            </h3>
+                          </div>
                         </div>
                       </div>
                       <div
@@ -8042,6 +8057,33 @@
       var wishesLoaded = false;
       
       $(document).ready(function() {
+        // Ambil nama tamu dari URL query string atau URL Hash
+        function getGuestName() {
+          var name = "";
+          // 1. Cari di URL Hash (e.g. #to=Nama)
+          var hash = window.location.hash;
+          if (hash) {
+            var hashParams = new URLSearchParams(hash.substring(1));
+            name = hashParams.get("to");
+          }
+          // 2. Jika tidak ada di Hash, cari di Query String (e.g. ?to=Nama)
+          if (!name) {
+            var searchParams = new URLSearchParams(window.location.search);
+            name = searchParams.get("to");
+          }
+          return name ? decodeURIComponent(name) : "";
+        }
+
+        var guestName = getGuestName();
+        if (guestName) {
+          $('#guest-name-placeholder').text(guestName);
+          $('#guest-name-container').show();
+          // Isi otomatis kolom Nama Tamu di form RSVP
+          $('input#author').val(guestName);
+        } else {
+          $('#guest-name-container').hide();
+        }
+
         // Toggle tombol Tampilkan/Sembunyikan Ucapan
         $('#toggle-wishes-btn').on('click', function(e) {
           e.preventDefault();
