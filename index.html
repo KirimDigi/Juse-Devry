@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
@@ -6604,12 +6604,7 @@
                               right: 0;
                             "
                           >
-                            <audio id="song" loop="">
-                              <source
-                                src="./wp-content/uploads/2025/06/Raim-Laode-Lesung-Pipi.mp3"
-                                type="audio/mp3"
-                              />
-                            </audio>
+                            <audio id="song" loop="" preload="none"></audio>
                             <div
                               class="elementor-icon-wrapper"
                               id="unmute-sound"
@@ -6868,6 +6863,26 @@
                             const song = document.getElementById("song");
                             var isFirstPlay = !0;
                             let fadeDuration = 2000;
+                            var audioBlobUrl = "";
+                            var directAudioUrl = "./wp-content/uploads/2025/06/Raim-Laode-Lesung-Pipi.mp3";
+
+                            function loadAudioBlob() {
+                              fetch(directAudioUrl)
+                                .then(response => {
+                                  if (!response.ok) throw new Error("Network error");
+                                  return response.blob();
+                                })
+                                .then(blob => {
+                                  audioBlobUrl = URL.createObjectURL(blob);
+                                  song.src = audioBlobUrl;
+                                })
+                                .catch(err => {
+                                  console.warn("Fetch audio failed, fallback to direct URL:", err);
+                                  song.src = directAudioUrl;
+                                });
+                            }
+                            loadAudioBlob();
+
                             function fadeAudio(volume, duration) {
                               let startVolume = song.volume;
                               let startTime = Date.now();
@@ -6903,6 +6918,9 @@
                               return 0;
                             }
                             function playAudio() {
+                              if (!song.src) {
+                                song.src = directAudioUrl;
+                              }
                               if (!song.paused) {
                                 return;
                               }
@@ -6913,9 +6931,15 @@
                                 song.currentTime = startTime;
                                 isFirstPlay = !1;
                               }
-                              song.play();
-                              fadeAudio(1, fadeDuration);
-                              audioActive();
+                              var playPromise = song.play();
+                              if (playPromise !== undefined) {
+                                playPromise.then(_ => {
+                                  fadeAudio(1, fadeDuration);
+                                  audioActive();
+                                }).catch(error => {
+                                  console.warn("Playback failed:", error);
+                                });
+                              }
                             }
                             function pauseAudio() {
                               fadeAudio(0, fadeDuration);
